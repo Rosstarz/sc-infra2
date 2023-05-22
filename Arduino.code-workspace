@@ -1,0 +1,22 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"name": "ardi_t1",
+			"path": "ardi_t1"
+		},
+		{
+			"name": "simon_says",
+			"path": "simon_says"
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"*.cgi": "perl",
+			"unistd.h": "c",
+			"stdio.h": "c"
+		}
+	}
+}
