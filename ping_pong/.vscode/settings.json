@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "*.cgi": "perl",
+        "delay.h": "c"
+    }
+}

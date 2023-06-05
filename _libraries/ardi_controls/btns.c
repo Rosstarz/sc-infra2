@@ -1,6 +1,8 @@
+#include "btns.h"
+
 #include <avr/io.h> //Use this library to name the various registers of the ATmega328P microcontroller, like eg DDRB
-#include <stdbool.h>
 #include <util/delay.h> //This library includes the function named _delay_ms(..) which pauses the execution of the program.
+// #include <stdbool.h>
 
 void enableButton( int button ){
     DDRB |= (1 << button);
@@ -13,16 +15,12 @@ void enableAllButtons(){
     enableButton( PC3 );
 }
 
-bool buttonPushed( int button ){
+int buttonPushed( int button ){
     if (bit_is_clear( PINC, button )){
         _delay_ms( 100 );
         if ( bit_is_clear( PINC, button )){
-            return true;
+            return 1;
         }
     }
-    return false;
+    return 0;
 }
-
-// bool buttonReleased( int button ){
-
-// }

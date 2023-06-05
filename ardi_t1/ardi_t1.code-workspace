@@ -1,0 +1,17 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"name": "ping_pong",
+			"path": "../ping_pong"
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"*.cgi": "perl",
+			"string.h": "c"
+		}
+	}
+}
