@@ -59,7 +59,7 @@ void playToneFQ(float frequency, uint32_t duration)
 {
    if(frequency == 0)
    {
-      _delay_us(duration);
+      _delay_ms(duration);
       return;
    }
    uint32_t periodInMicro = (uint32_t)(1000000 / frequency);              // Calculate the period in microsecs from the freq

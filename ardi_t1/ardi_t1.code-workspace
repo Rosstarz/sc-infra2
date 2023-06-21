@@ -11,7 +11,9 @@
 	"settings": {
 		"files.associations": {
 			"*.cgi": "perl",
-			"string.h": "c"
+			"string.h": "c",
+			"buzzer.h": "c",
+			"io.h": "c"
 		}
 	}
 }

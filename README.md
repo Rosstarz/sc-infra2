@@ -15,6 +15,9 @@
 - simon_says
 - ping_pong
 
+#### Unfinished Projects:
+- potentiometer_on_display
+
 .
 
 ## The Amazing Ping Pong Game
