@@ -1,0 +1,16 @@
+Arduino Project Modifications
+
+Rostislav Rucka ACS102
+Project: Ping Pong Game
+https://gitlab.com/kdg-ti/infrastructure2/2022-2023/rostislav-rucka/-/tree/resit_exam?ref_type=tags
+
+Modifications made to Ping Pong Game:
+- Added potenciometer for setting ball speed
+- Displaying real ball speed
+- Removed table size adjust option due to potenciometer taking display
+- UI overhaul
+- Added in-game exit button
+- Minor bug fixes
+
+Other:
+- Finished Potenciometer on display
