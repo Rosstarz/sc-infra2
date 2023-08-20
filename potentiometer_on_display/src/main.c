@@ -1,57 +1,46 @@
 #include <util/delay.h>
 #include <avr/io.h>
-#include <avr/interrupt.h>
 #include <usart.h>
-#include <buzzer.h>
 #include <display.h>
 #include <isr.h>
 #include <timer.h>
 
-// put function declarations here:
-void initADC();
+uint16_t adc_value = 0;
 
-void setup() {
-  // put your setup code here, to run once:
-  initUSART();
-  initADC();
-  enableBuzzer();
-  initDisplay();
-  initTimerInterrupts(1);
-  enableInterrupts();
-}
-
-int main()
+void initADC()
 {
-    setup();
-    uint16_t value = 0;
-
-    while (1)
-    {
-        value = ADC; // Read the result immediately
-        printf("Value: %d\n", value);
-        // writeNumber(value);
-        playToneFQ(ADC*2, 1);
-        // _delay_ms(10); // Delay for better readability, adjust as needed
-    }
-
-    return 0;
+    ADMUX |= ( 1 << REFS0 );    //Set up of reference voltage. We choose 5V as reference.
+    ADCSRA |= ( 1 << ADPS2 ) | ( 1 << ADPS1 ) | ( 1 << ADPS0 );  //Determine a sample rate by setting a division factor. Used division factor: 128
+    ADCSRA |= ( 1 << ADEN ); //Enable the ADC
 }
 
 ISR(TIMER0_COMPA_vect)
 {
-    int value = ADC;
-    writeNumber(value);
+    writeNumber(adc_value);
     blankSegment(3);
 }
 
-// put function definitions here:
-void initADC()
+ISR(TIMER0_OVF_vect)
 {
-    ADMUX |= (1 << REFS0);                                // Set up the reference voltage. We choose 5V as the reference.
-    ADCSRA |= (1 << ADPS2) | (1 << ADPS1) | (1 << ADPS0); // Determine the sample rate by setting the division factor to 128.
-    ADCSRA |= (1 << ADEN);                                // Enable the ADC
-    ADCSRA |= (1 << ADATE);                               // Enable ADC Auto Triggering
-    ADCSRB = 0;                                                // Set ADC Auto Trigger Source to Free Running Mode (default)
-    ADCSRA |= (1 << ADSC);                                // Start the analog-to-digital conversion
+    adc_value = ADC;
 }
 
+int main()
+{
+    initUSART();
+    initADC();
+    initDisplay();
+    initTimerInterrupts(1);
+    enableInterrupts();
+    printf("\n\n\nPotenciometer on dispay\n\n");
+    while (1)
+    {
+        ADCSRA |= ( 1 << ADSC );    //Start the analog --> digital conversion
+        loop_until_bit_is_clear( ADCSRA, ADSC );    //Wait until the conversion is completed
+        printf("\rValue: %d", adc_value);
+        _delay_ms(100); // Delay for better readability, adjust as needed
+        fflush(stdout);
+    }
+
+    return 0;
+}

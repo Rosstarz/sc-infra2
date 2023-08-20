@@ -25,8 +25,8 @@
 #define LED4 3
 #define TABLE_MAX 25
 #define TABLE_MIN 5
-#define BALL_SPEED_MAX 700
-#define BALL_SPEED_MIN 100
+// #define BALL_SPEED_MAX 700
+// #define BALL_SPEED_MIN 100
 
 // STRUCTS
 typedef struct
@@ -46,8 +46,8 @@ int gameOn = 0;
 int settingsOn = 0;
 int tableSize = 10;
 int tableSizeIndex = 2;
-int ballSpeedDelay = 300;
-int ballSpeedDelayIndex = 3;
+int ballSpeedDelay = 500;
+// int ballSpeedDelayIndex = 3;
 char *table;
 int ballMovingRight = 1;
 int p1TooSoon = 0;
@@ -55,19 +55,23 @@ int p2TooSoon = 0;
 int blinkCount = 0;
 int gameOver = 0;
 int pWinner = 0;
+uint16_t adc_value = 0;
 
 // TODO:
 // ADC set initial speed of ball using potenciometer
 
 void setBallSpeed()
 {
-    ballSpeedDelay -= 200;
-    ballSpeedDelayIndex++;
-    if (ballSpeedDelay < BALL_SPEED_MIN)
-    {
-        ballSpeedDelay = BALL_SPEED_MAX;
-        ballSpeedDelayIndex = 1;
-    }
+//     ballSpeedDelay -= 200;
+//     ballSpeedDelayIndex++;
+//     if (ballSpeedDelay < BALL_SPEED_MIN)
+//     {
+//         ballSpeedDelay = BALL_SPEED_MAX;
+//         ballSpeedDelayIndex = 1;
+//     }
+    ADCSRA |= (1 << ADSC);                 // Start the analog --> digital conversion
+    loop_until_bit_is_clear(ADCSRA, ADSC); // Wait until the conversion is completed
+    ballSpeedDelay = 1000 - adc_value;
 }
 
 void setTableSize()
@@ -104,15 +108,17 @@ ISR(PCINT1_vect)
     }
     else if (settingsOn)
     {
-        if (buttonPushed(1))
-        {
-            setBallSpeed();
-        }
-        else if (buttonPushed(2))
-        {
-            setTableSize();
-        }
-        else if (buttonPushed(3))
+        // if (buttonPushed(1))
+        // {
+        //     setBallSpeed();
+        // }
+        // else 
+        // if (buttonPushed(2))
+        // {
+        //     setTableSize();
+        // }
+        // else 
+        if (buttonPushed(1) || buttonPushed(2) || buttonPushed(3))
         {
             settingsOn = 0;
             menuOn = 1;
@@ -122,22 +128,25 @@ ISR(PCINT1_vect)
     {
         if (buttonPushed(2))
         {
-        //     gameOn = 0;
-        //     menuOn = 1;
-        // }
-        // else if (buttonPushed(1) && buttonPushed(3))
-        // {
-            setBallSpeed();
+            //     gameOn = 0;
+            //     menuOn = 1;
+            // }
+            // else if (buttonPushed(1) && buttonPushed(3))
+            // {
+            // setBallSpeed();
+            // exit game here
+            gameOver = 1;
         }
     }
 }
 
 void showScreenInfo()
 {
-    writeCharToSegment(0, 'S');
-    writeNumberToSegment(1, ballSpeedDelayIndex);
-    writeCharToSegment(2, 'H');
-    writeNumberToSegment(3, tableSizeIndex);
+    writeNumber(adc_value);
+    // writeCharToSegment(0, 'S');
+    // writeNumberToSegment(1, ballSpeedDelayIndex);
+    // writeCharToSegment(2, 'H');
+    // writeNumberToSegment(3, tableSizeIndex);
 }
 
 ISR(TIMER0_COMPA_vect)
@@ -172,14 +181,14 @@ ISR(TIMER0_COMPA_vect)
         {
             writeCharToSegment(0, 'P');
             writeNumberToSegment(1, pWinner);
-            if (players[pWinner-1].score > 9)
+            if (players[pWinner - 1].score > 9)
             {
-                writeNumberToSegment(2, players[pWinner-1].score / 10);
-                writeNumberToSegment(3, players[pWinner-1].score % 10);
+                writeNumberToSegment(2, players[pWinner - 1].score / 10);
+                writeNumberToSegment(3, players[pWinner - 1].score % 10);
             }
             else
             {
-                writeNumberToSegment(3, players[pWinner-1].score % 10);
+                writeNumberToSegment(3, players[pWinner - 1].score % 10);
             }
         }
     }
@@ -189,11 +198,19 @@ ISR(TIMER0_COMPA_vect)
 // This ISR runs every time TCNT0 equals the TOP value (255)
 ISR(TIMER0_OVF_vect)
 {
+    adc_value = ADC;
     // counter++;
     // PORTB |= _BV(PB2) | _BV(PB3) | _BV(PB4) | _BV(PB5);
 }
 
 // FUNCTIONS
+void initADC()
+{
+    ADMUX |= (1 << REFS0);                                // Set up of reference voltage. We choose 5V as reference.
+    ADCSRA |= (1 << ADPS2) | (1 << ADPS1) | (1 << ADPS0); // Determine a sample rate by setting a division factor. Used division factor: 128
+    ADCSRA |= (1 << ADEN);                                // Enable the ADC
+}
+
 void init()
 {
     initUSART();
@@ -205,6 +222,7 @@ void init()
     indicatePCMSK1(BTN1);
     indicatePCMSK1(BTN2);
     indicatePCMSK1(BTN3);
+    initADC();
     initDisplay();
     initTimerInterrupts(1);
     enableInterrupts();
@@ -213,7 +231,7 @@ void init()
 void mainMenu()
 {
     // TODO game name and rules
-    printf("\nMain Menu\n(1) Start Game\n(2) Settings\n(3) Exit\n");
+    printf("\n\n-------------\n| Main Menu |\n-------------\n(1) Start Game\n(2) Settings\n(3) Exit");
     while (menuOn)
     {
         _delay_ms(1000);
@@ -222,7 +240,7 @@ void mainMenu()
 
 void countdown()
 {
-    printf("Countdown\n");
+    printf("\n\n---------------------\n| READY, SET, PLAY! |\n---------------------\n");
     enableBuzzer();
     float frequencies[] = {C5, E5, G5, C6, C7};
     const int delay = 600;
@@ -379,12 +397,13 @@ void ballDelay()
 
 void printSetting()
 {
-    printf("\r[SPEED: %d] [TABLE: %d]", ballSpeedDelayIndex, tableSizeIndex);
+    // printf("\r[SPEED: %d] [TABLE: %d]", ballSpeedDelayIndex, tableSizeIndex);
+    printf("\r[SPEED: %d] [TABLE: %d]", adc_value, tableSizeIndex);
 }
 
 void printGameEnd()
 {
-    printf("\n\nGame Over!\n");
+    printf("\n\n--------------------------\n| GAME OVER - SCOREBOARD |\n--------------------------\n");
     printf("Player 1: %d\n", players[0].score);
     printf("Player 2: %d\n", players[1].score);
     pWinner = 0;
@@ -397,10 +416,13 @@ void printGameEnd()
         pWinner = 2;
     }
     gameOn = 0;
-    if (pWinner == 0){
+    if (pWinner == 0)
+    {
         printf("It's a DRAW!\n");
-    } else {
-        printf("Player %d Wins! That's their win n°%d today!\n", pWinner, players[pWinner-1].wins);
+    }
+    else
+    {
+        printf("Player %d Wins! That's their win n°%d today!\n", pWinner, players[pWinner - 1].wins);
     }
     printf("Press any button to continue..\n");
 
@@ -408,7 +430,7 @@ void printGameEnd()
     // int winningMelody[] = {G3, C, E, G, C5, E5, G5, E5, PAUSE,
     //                        Gb3, C, Db, Gb, C5, Db5, Gb5, Db5, PAUSE,
     //                        Ab3, D, F, Ab, D5, Ab5, Ab5, Ab5, Ab5, C6};
-    
+
     int winningMelody[] = {Ab5, Ab5, Ab5, Ab5, C6};
     // const int tempo[] = {DL2, DL2, DL2, DL2, DL2, DL2, DL5, DL5, DL5,
     //                      DL2, DL2, DL2, DL2, DL2, DL2, DL5, DL5, DL5,
@@ -441,6 +463,7 @@ void mainGame()
     // printf("Table: %d\n", table[5]);
     while (1)
     {
+        setBallSpeed();
         printSetting();
         printTable();
         ballCheck();
@@ -461,20 +484,30 @@ void mainGame()
 
 void settings()
 {
-    printf("Settings\n(1) Change Ball Speed\n(2) Change Table Size\n(3) Go Back\n");
+    // printf("------------\n| Settings |\n------------\n(1) Change Ball Speed\n(2) Change Table Size\n(3) Go Back\n");
+    printf("\n\n------------\n| Settings |\n------------\nRotate potenciometer to adjust ball speed\n");
     while (settingsOn)
     {
+        setBallSpeed();
         printSetting();
-        _delay_ms(100);
+        _delay_ms(200);
         fflush(stdout);
     }
+    printf("\n");
+}
+
+void printGameName()
+{
+    printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n   ________   ________   _______   _______      ________  _______    _______   _______   \n  ╱        ╲ ╱        ╲╱╱   ╱   ╲╱╱       ╲    ╱        ╲╱       ╲╲╱╱   ╱   ╲╱╱       ╲  \n ╱         ╱_╱       ╱╱╱        ╱╱      __╱   ╱         ╱        ╱╱╱        ╱╱      __╱  \n╱╱      __╱╱         ╱         ╱       ╱ ╱   ╱╱      __╱         ╱         ╱       ╱ ╱   \n╲╲_____╱   ╲╲_______╱╲__╱_____╱╲________╱    ╲╲_____╱  ╲________╱╲__╱_____╱╲________╱    \n\n\n\n");
 }
 
 // MAIN
 int main()
 {
     init();
+    printGameName();
     initPlayers();
+    setBallSpeed();
     while (appOn)
     {
         while (menuOn)

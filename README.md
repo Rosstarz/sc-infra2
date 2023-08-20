@@ -14,11 +14,9 @@
 #### Finished Projects:
 - simon_says
 - ping_pong
-
-#### Unfinished Projects:
 - potentiometer_on_display
 
-.
+
 
 ## The Amazing Ping Pong Game
 
@@ -29,6 +27,4 @@ During game:
 - Press your button when the ball is close to your racket ( 3 dashes ) to play it back
 - Player 1 - Button 1
 - Player 2 - Button 3
-- Button 2 - Adjust speed of ball
-
-You can also adjust speed of ball and table size in settings
+- Rotate potenciometer to adjust ball speed
