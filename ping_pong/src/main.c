@@ -293,7 +293,12 @@ void initTable()
     table = calloc(tableSize, sizeof(int));
     for (int i = 0; i < tableSize; i++) // Walking through the array using a variable pointer
     {
-        *(table + i) = '-';
+        char symbol = '-';
+        if (i == tableSize / 2)
+        {
+            symbol = '|';
+        }
+        *(table + i) = symbol;
         // table[i] = '-';
         // printf( " %c ", table[i] );  //initial value
     }
